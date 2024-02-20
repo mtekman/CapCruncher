@@ -69,7 +69,7 @@ rule plot:
     input:
         unpack(
             lambda wc: capcruncher.pipeline.utils.get_files_to_plot(
-                wc, DESIGN, ASSAY, SAMPLE_NAMES, SUMMARY_METHODS
+                wc, DESIGN, ASSAY, SAMPLE_NAMES, SUMMARY_METHODS, COMPARE_SAMPLES
             )
         ),
         viewpoints=config["analysis"]["viewpoints"],
@@ -84,11 +84,12 @@ rule plot:
         design=DESIGN,
         genes=config["plot"].get("genes", ""),
         binsize=config["analysis"].get("bin_sizes", [None])[0],
+        normalization_method=config["plot"].get("normalisation", "raw"),
     wildcard_constraints:
         comparison=f"[A-Za-z0-9_\.]+-[A-Za-z0-9_\.]+",
         group=f"[A-Za-z0-9_\.]+",
     log:
-        "logs/plot/{viewpoint}.log",
+        "capcruncher_output/logs/plot/{viewpoint}.log",
     threads: 1
     script:
         "../scripts/plot.py"

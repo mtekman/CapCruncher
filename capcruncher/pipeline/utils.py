@@ -67,7 +67,19 @@ def format_config_dict(config: Dict) -> Dict:
 
     """
     for key, value in config.items():
-        config[key] = convert_empty_yaml_entry_to_string(value)
+        if isinstance(value, dict):
+            config[key] = format_config_dict(value)
+        else:
+            entry = convert_empty_yaml_entry_to_string(value)
+
+            if is_on(entry):
+                config[key] = True
+            elif is_off(entry):
+                config[key] = False
+            elif is_none(entry):
+                config[key] = False
+            else:
+                config[key] = entry
 
     return config
 
@@ -162,6 +174,9 @@ def group_files_by_regex(files: List, regex: str):
         .agg(list)["fn"]
         .rename("files_grouped")
     )
+
+def is_valid_viewpoint_name(name: str):
+    return re.match(r"^[A-Za-z0-9_\-]+$", name)
 
 
 class FastqSamples:
@@ -371,7 +386,6 @@ def get_files_to_plot(
     sample_names: List[str],
     summary_methods: List[str],
     compare_samples: bool = False,
-    aggregate_samples: bool = False,
 ):
     files = {
         "bigwigs": [],
@@ -405,11 +419,6 @@ def get_files_to_plot(
         "capcruncher_output/results/{sample}/bigwigs/norm/{sample}_{{viewpoint}}.bigWig",
         sample=sample_names,
     )
-
-    # if AGGREGATE_SAMPLES:
-    #     files["bigwigs_collection"].extend(bigwigs)
-    # else:
-    #     files["bigwigs"].extend(bigwigs)
 
     files["bigwigs"].extend(bigwigs)
 
